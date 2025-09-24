@@ -133,11 +133,13 @@ async function getBot() {
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { token: string } }
+  { params }: { params: Promise<{ token: string }> }
 ) {
   try {
+    const { token } = await params
+
     // Validate request is from Telegram
-    if (!validateTelegramRequest(req, params.token)) {
+    if (!validateTelegramRequest(req, token)) {
       console.error('Unauthorized webhook request')
       return NextResponse.json(
         { error: 'Unauthorized' },
@@ -176,10 +178,12 @@ export async function POST(
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { token: string } }
+  { params }: { params: Promise<{ token: string }> }
 ) {
+  const { token } = await params
+
   // Only show status if token is valid
-  if (!process.env.WEBHOOK_SECRET_TOKEN || params.token !== process.env.WEBHOOK_SECRET_TOKEN) {
+  if (!process.env.WEBHOOK_SECRET_TOKEN || token !== process.env.WEBHOOK_SECRET_TOKEN) {
     return NextResponse.json(
       { error: 'Not found' },
       { status: 404 }
