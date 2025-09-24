@@ -2,8 +2,9 @@ import { Bot, Context } from 'grammy'
 import { NextRequest, NextResponse } from 'next/server'
 
 let bot: Bot<Context> | null = null
+let botInitialized = false
 
-function getBot() {
+async function getBot() {
   if (!bot) {
     const token = process.env.TELEGRAM_BOT_TOKEN
     if (!token || token === 'dummy-token-for-build') {
@@ -76,6 +77,11 @@ function getBot() {
     })
   }
 
+  if (!botInitialized) {
+    await bot.init()
+    botInitialized = true
+  }
+
   return bot
 }
 
@@ -92,7 +98,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json()
     console.log('Received webhook update:', JSON.stringify(body, null, 2))
 
-    const botInstance = getBot()
+    const botInstance = await getBot()
     await botInstance.handleUpdate(body)
 
     return NextResponse.json({ ok: true })
